@@ -58,13 +58,32 @@ for name in target_names:
 
                 #create instance of RWP class
                 parser = RedditWebParser(url)
-                html = parser.getComments()
-                output.write(f'post { counter }: { url }')
-                output.write('\n' + str(html) + '\n')
+                post = parser.getPost()
+                comments = parser.getComments()
+
+                output.write('\n' + f'5U8M15510N { counter }: { url }')
+
+                output.write('\n' + 'Post:' + '\n')
+                for line in post:
+                    try:
+                        output.write(line.text)
+                    except AttributeError:
+                        print('Problem reading line!')
+                        continue
+                output.write('\n')
+
+                output.write('\n' + 'Comments:' + '\n')
+                for comment in comments:
+                    try:
+                        output.write(comment.text)
+                    except AttributeError:
+                        print('Problem reading comment!')
+                        continue
+                output.write('\n')
 
                 counter = counter + 1
             except AttributeError:
-                print('Oops no comment found!')
+                print('Something went wrong!')
                 continue
     output.close()
     urls = []

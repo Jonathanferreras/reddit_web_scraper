@@ -13,6 +13,9 @@ class RedditWebParser:
     def getHTML(self):
         return self.soup.prettify("utf-8")
 
+    def getText(self):
+        return self.soup.get_text()
+
     def getPost(self):
         post_div = self.soup.find('div', class_ = 'sitetable')
         post_content = post_div.find('div', class_ = 'md')
