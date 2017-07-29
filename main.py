@@ -1,9 +1,8 @@
-import codecs
 import config
 import os
 import os.path
 import praw
-from RedditWebParser import RedditWebParser
+from Submission import Submission
 
 reddit = praw.Reddit(user_agent = config.user_agent,
                      client_id = config.client_id,
@@ -11,7 +10,7 @@ reddit = praw.Reddit(user_agent = config.user_agent,
 
 #specifing subreddit
 subreddit = reddit.subreddit(config.subreddit)
-
+subreddit2 = reddit.subreddit('all')
 # #read names from text file and store in list
 target_list = open('target_list.txt', 'r')
 target_names = []
@@ -23,67 +22,48 @@ for name in target_list:
     print('--------------------------------------')
 target_list.close()
 
+author_submissions_urls = []
+general_submissions_urls = []
 
-#extract data from web pages
-urls = []
 for name in target_names:
+    root_dir = os.getcwd()
+    sub_dir = os.path.join(root_dir, 'target_data')
+    name_dir = os.path.join(sub_dir, name)
+    author_submissions = os.path.join(name_dir, 'author_submissions')
+    general_submissions = os.path.join(name_dir, 'general_submissions')
+
+    #creates folder for target if it does not exisit
+    if not os.path.exists(author_submissions):
+        os.makedirs(author_submissions)
+
+    if not os.path.exists(general_submissions):
+        os.makedirs(general_submissions)
+
     print(f'username: { name }')
+    #storing author submissions urls into author submissons folder
     for author_data in subreddit.search('author:' + name):
         if 'reddit' in author_data.url:
-            urls.append(author_data.url)
+            author_submissions_urls.append(author_data.url)
             print('------------------')
-            print('extracting urls...')
+            print('extracting author submissions urls...')
             print('------------------')
             print(f'{ author_data.url }')
 
-    file_name = name + '.txt'
-    root_dir = os.getcwd()
-    sub_dir = os.path.join(root_dir, 'target_data')
-    new_path = os.path.join(sub_dir, name)
+    for url in author_submissions_urls:
+        author_submission = Submission(url)
+        author_submission.writeSubmission(author_submissions)
+    author_submissions_urls = []
 
-    #creates folder for target if it does not exisit
-    if not os.path.exists(new_path):
-        os.makedirs(new_path)
+    #storing general submissions_urls into general submissions folder
+    for general_data in subreddit2.search('selftext:'+name):
+        if 'reddit' in general_data.url:
+            general_submissions_urls.append(general_data.url)
+            print('------------------')
+            print('extracting general submissions urls...')
+            print('------------------')
+            print(f'{ general_data.url }')
 
-    post_comment_path = os.path.join(new_path, file_name)
-
-    #write to text file contents from urls
-    with codecs.open(post_comment_path, "w", "utf-8-sig") as output:
-        counter = 1
-        for url in urls:
-            try:
-                print('----------------------')
-                print(f'extracting from: { url }')
-                print('----------------------')
-
-                #create instance of RWP class
-                parser = RedditWebParser(url)
-                post = parser.getPost()
-                comments = parser.getComments()
-
-                output.write('\n' + f'5U8M15510N { counter }: { url }')
-
-                output.write('\n' + 'Post:' + '\n')
-                for line in post:
-                    try:
-                        output.write(line.text)
-                    except AttributeError:
-                        print('Problem reading line!')
-                        continue
-                output.write('\n')
-
-                output.write('\n' + 'Comments:' + '\n')
-                for comment in comments:
-                    try:
-                        output.write(comment.text)
-                    except AttributeError:
-                        print('Problem reading comment!')
-                        continue
-                output.write('\n')
-
-                counter = counter + 1
-            except AttributeError:
-                print('Something went wrong!')
-                continue
-    output.close()
-    urls = []
+    for url in general_submissions_urls:
+        general_submission = Submission(url)
+        general_submission.writeSubmission(general_submissions)
+    general_submissions_urls = []

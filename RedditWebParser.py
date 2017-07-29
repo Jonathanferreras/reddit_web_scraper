@@ -16,15 +16,20 @@ class RedditWebParser:
     def getText(self):
         return self.soup.get_text()
 
+    def getTitle(self):
+        title = self.soup.find('a', class_ = 'title')
+
+        return title.get_text()
+
     def getPost(self):
         post_div = self.soup.find('div', class_ = 'sitetable')
-        post_content = post_div.find('div', class_ = 'md')
+        post = post_div.find('div', class_ = 'md')
 
-        return post_content
+        return post
 
     def getComments(self):
         comment_div = self.soup.find('div', class_ = 'commentarea')
         comment_sitetable = comment_div.find('div', class_ = 'sitetable')
-        comment_thing = comment_sitetable.findAll('div', class_ = 'thing')
+        comments = comment_sitetable.findAll('div', class_ = 'thing')
 
-        return comment_thing
+        return comments
